@@ -73,7 +73,7 @@ def cmd_create(args):
 
     title = args[0]
     spec = "SQUAREBOOK_HC"
-    creation_type = "TEST"
+    creation_type = "TEMPLATE"
 
     if "--spec" in args:
         idx = args.index("--spec")

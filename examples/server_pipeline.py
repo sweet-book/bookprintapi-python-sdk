@@ -91,7 +91,7 @@ def run_pipeline():
     book = client.books.create(
         book_spec_uid=BOOK_SPEC,
         title="서버 파이프라인 테스트",
-        creation_type="TEST",
+        creation_type="TEMPLATE",
         external_ref="PIPELINE-001",
     )
     book_uid = book["data"]["bookUid"]

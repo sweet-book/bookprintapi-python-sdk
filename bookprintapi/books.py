@@ -27,13 +27,13 @@ class BooksClient:
         return self._client.get("/Books", params=params)
 
     def create(self, *, book_spec_uid: str, title: str | None = None,
-               creation_type: str = "NORMAL", external_ref: str | None = None) -> dict:
+               creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
         """새 책 생성 (draft 상태)
 
         Args:
             book_spec_uid: 상품 규격 UID (예: "SQUAREBOOK_HC")
             title: 책 제목
-            creation_type: "NORMAL" | "TEST"
+            creation_type: "TEMPLATE" | "PDF_UPLOAD" | "MIX_COVER_TEMPLATE"
             external_ref: 외부 참조 ID (최대 100자)
         """
         payload = {"bookSpecUid": book_spec_uid, "creationType": creation_type}

@@ -56,7 +56,7 @@ class AsyncBooksClient(_AsyncBaseClient):
         return await self._client.get("/Books", params=params)
 
     async def create(self, *, book_spec_uid: str, title: str | None = None,
-                     creation_type: str = "NORMAL", external_ref: str | None = None) -> dict:
+                     creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
         payload = {"bookSpecUid": book_spec_uid, "creationType": creation_type}
         if title:
             payload["title"] = title
