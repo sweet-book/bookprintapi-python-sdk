@@ -53,7 +53,7 @@ class AsyncBooksClient(_AsyncBaseClient):
         params = {"limit": limit, "offset": offset}
         if status:
             params["status"] = status
-        return await self._client.get("/Books", params=params)
+        return await self._client.get("/books", params=params)
 
     async def create(self, *, book_spec_uid: str, title: str | None = None,
                      creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
@@ -62,19 +62,19 @@ class AsyncBooksClient(_AsyncBaseClient):
             payload["title"] = title
         if external_ref:
             payload["externalRef"] = external_ref
-        return await self._client.post("/Books", payload=payload)
+        return await self._client.post("/books", payload=payload)
 
     async def get(self, book_uid: str) -> dict:
         self._requireParam(book_uid, "book_uid")
-        return await self._client.get(f"/Books/{book_uid}")
+        return await self._client.get(f"/books/{book_uid}")
 
     async def finalize(self, book_uid: str) -> dict:
         self._requireParam(book_uid, "book_uid")
-        return await self._client.post(f"/Books/{book_uid}/finalization", payload={})
+        return await self._client.post(f"/books/{book_uid}/finalization", payload={})
 
     async def delete(self, book_uid: str) -> dict | None:
         self._requireParam(book_uid, "book_uid")
-        return await self._client.delete(f"/Books/{book_uid}")
+        return await self._client.delete(f"/books/{book_uid}")
 
 
 class AsyncOrdersClient(_AsyncBaseClient):
