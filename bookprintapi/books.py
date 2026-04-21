@@ -24,7 +24,7 @@ class BooksClient:
         params = {"limit": limit, "offset": offset}
         if status:
             params["status"] = status
-        return self._client.get("/Books", params=params)
+        return self._client.get("/books", params=params)
 
     def create(self, *, book_spec_uid: str, title: str | None = None,
                creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
@@ -41,16 +41,16 @@ class BooksClient:
             payload["title"] = title
         if external_ref:
             payload["externalRef"] = external_ref
-        return self._client.post("/Books", payload=payload)
+        return self._client.post("/books", payload=payload)
 
     def get(self, book_uid: str) -> dict:
         """책 상세 조회"""
-        return self._client.get(f"/Books/{book_uid}")
+        return self._client.get(f"/books/{book_uid}")
 
     def finalize(self, book_uid: str) -> dict:
         """책 확정 (draft → finalized). 확정 후에는 내용 수정 불가."""
-        return self._client.post(f"/Books/{book_uid}/finalization", payload={})
+        return self._client.post(f"/books/{book_uid}/finalization", payload={})
 
     def delete(self, book_uid: str) -> dict | None:
         """책 삭제 (draft 상태만 가능)"""
-        return self._client.delete(f"/Books/{book_uid}")
+        return self._client.delete(f"/books/{book_uid}")

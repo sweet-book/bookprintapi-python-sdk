@@ -47,7 +47,7 @@ class ContentsClient:
 
         try:
             return self._client.post_form(
-                f"/Books/{book_uid}/contents", files=multipart, params=params,
+                f"/books/{book_uid}/contents", files=multipart, params=params,
             )
         finally:
             for f in opened:
@@ -55,4 +55,4 @@ class ContentsClient:
 
     def clear(self, book_uid: str) -> dict:
         """모든 내지 페이지 삭제 (표지는 유지)"""
-        return self._client.delete(f"/Books/{book_uid}/contents")
+        return self._client.delete(f"/books/{book_uid}/contents")

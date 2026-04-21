@@ -40,15 +40,15 @@ class CoversClient:
                 multipart.append(("files", (os.path.basename(path), f, "image/jpeg")))
 
         try:
-            return self._client.post_form(f"/Books/{book_uid}/cover", files=multipart)
+            return self._client.post_form(f"/books/{book_uid}/cover", files=multipart)
         finally:
             for f in opened:
                 f.close()
 
     def get(self, book_uid: str) -> dict:
         """표지 정보 조회"""
-        return self._client.get(f"/Books/{book_uid}/cover")
+        return self._client.get(f"/books/{book_uid}/cover")
 
     def delete(self, book_uid: str) -> dict | None:
         """표지 삭제"""
-        return self._client.delete(f"/Books/{book_uid}/cover")
+        return self._client.delete(f"/books/{book_uid}/cover")

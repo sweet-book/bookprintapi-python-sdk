@@ -27,7 +27,7 @@ class PhotosClient:
             name = os.path.basename(file_path)
             mime = mimetypes.guess_type(file_path)[0] or "image/jpeg"
             files = [("file", (name, f, mime))]
-            return self._client.post_form(f"/Books/{book_uid}/photos", files=files)
+            return self._client.post_form(f"/books/{book_uid}/photos", files=files)
 
     def upload_multiple(self, book_uid: str, file_paths: list[str]) -> list[dict]:
         """사진 여러 장 업로드 (순차)
@@ -43,8 +43,8 @@ class PhotosClient:
 
     def list(self, book_uid: str) -> dict:
         """업로드된 사진 목록"""
-        return self._client.get(f"/Books/{book_uid}/photos")
+        return self._client.get(f"/books/{book_uid}/photos")
 
     def delete(self, book_uid: str, file_name: str) -> dict | None:
         """사진 삭제 (draft 상태 책만 가능)"""
-        return self._client.delete(f"/Books/{book_uid}/photos/{file_name}")
+        return self._client.delete(f"/books/{book_uid}/photos/{file_name}")
