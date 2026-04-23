@@ -44,20 +44,11 @@ class BooksClient:
         return self._client.post("/books", payload=payload)
 
     def get(self, book_uid: str) -> dict:
-        """책 단건 상세 조회 (C04 이후 RESTful 단건 엔드포인트).
-
-        응답 data 에 pageMeta 포함:
-            {"currentPageCount": int, "pageMin": int, "pageMax": int,
-             "pageIncrement": int, "isValid": bool}
-        """
+        """책 상세 조회"""
         return self._client.get(f"/books/{book_uid}")
 
     def finalize(self, book_uid: str) -> dict:
-        """책 확정 (draft → finalized). 확정 후에는 내용 수정 불가.
-
-        C04 이후 응답 data: {"result", "pageMeta", "finalizedAt"}.
-        기존 `pageCount` 필드는 `pageMeta.currentPageCount` 로 대체됨.
-        """
+        """책 확정 (draft → finalized). 확정 후에는 내용 수정 불가."""
         return self._client.post(f"/books/{book_uid}/finalization", payload={})
 
     def delete(self, book_uid: str) -> dict | None:

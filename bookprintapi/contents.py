@@ -22,10 +22,6 @@ class ContentsClient:
                break_before: Literal["page", "spread", "column"] | None = None) -> dict:
         """내지 페이지 삽입
 
-        C04 이후 응답 data 에서 기존 `pageCount` 필드가 제거되고
-        `pageMeta` 객체로 이동: {currentPageCount, pageMin, pageMax,
-        pageIncrement, isValid}.
-
         Args:
             book_uid: 책 UID
             template_uid: 내지 템플릿 UID
