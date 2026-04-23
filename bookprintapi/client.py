@@ -65,6 +65,9 @@ class Client:
         from .contents import ContentsClient
         from .orders import OrdersClient
         from .credits import CreditsClient
+        from .pdfs import PdfsClient
+        from .templates import TemplatesClient
+        from .book_specs import BookSpecsClient
 
         self.books = BooksClient(self)
         self.photos = PhotosClient(self)
@@ -72,6 +75,9 @@ class Client:
         self.contents = ContentsClient(self)
         self.orders = OrdersClient(self)
         self.credits = CreditsClient(self)
+        self.pdfs = PdfsClient(self)
+        self.templates = TemplatesClient(self)
+        self.book_specs = BookSpecsClient(self)
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -113,6 +119,11 @@ class Client:
                   params: dict | None = None) -> dict | None:
         return self._request("POST", path, headers=self._headers(), data=data, files=files, params=params)
 
+    def put_form(self, path: str, data: dict | None = None,
+                 files: list[tuple[str, Any]] | None = None,
+                 params: dict | None = None) -> dict | None:
+        return self._request("PUT", path, headers=self._headers(), data=data, files=files, params=params)
+
     def patch(self, path: str, payload: dict | None = None) -> dict | None:
         headers = self._headers()
         headers["Content-Type"] = "application/json"
@@ -120,3 +131,26 @@ class Client:
 
     def delete(self, path: str, params: dict | None = None) -> dict | None:
         return self._request("DELETE", path, headers=self._headers(), params=params)
+
+    def download(self, path: str, dest_path: str | None = None,
+                 params: dict | None = None) -> bytes | str:
+        """바이너리 다운로드. dest_path 지정 시 파일로 저장 후 경로 반환, 미지정 시 bytes 반환."""
+        try:
+            resp = self._session.request(
+                "GET", self._url(path),
+                headers=self._headers(), params=params,
+                timeout=self.timeout, stream=bool(dest_path),
+            )
+            if not resp.ok:
+                raise ApiError.from_response(resp)
+            if dest_path:
+                with open(dest_path, "wb") as f:
+                    for chunk in resp.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+                return dest_path
+            return resp.content
+        except ApiError:
+            raise
+        except requests.RequestException as e:
+            raise ApiError(f"Network error: {e}", status_code=None) from e
