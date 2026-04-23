@@ -36,12 +36,20 @@ class OrdersClient:
         return self._client.post("/orders", payload=payload)
 
     def list(self, *, limit: int = 20, offset: int = 0,
-             status: int | None = None,
+             status: str | int | None = None,
              from_date: str | None = None, to_date: str | None = None) -> dict:
         """주문 목록 조회
 
+        C19 이후 응답 shape:
+            {"success": True, "data": [OrderListItem, ...],
+             "pagination": {"total": N, "limit": L, "offset": O, "hasNext": bool}}
+        data 가 배열, pagination 이 top-level 로 이동.
+
         Args:
-            status: 상태 코드 (20=PAID, 25=PDF_READY, 30=CONFIRMED, ...)
+            status: 문자열 enum 권장 — "PAID", "PDF_READY", "CONFIRMED",
+                "IN_PRODUCTION", "SHIPPED", "DELIVERED",
+                "CANCELLED", "CANCELLED_REFUND", "ERROR" 등.
+                서버가 숫자 코드도 호환해줄 경우 int 전달 가능.
             from_date: 시작 일시 (ISO 형식)
             to_date: 종료 일시 (ISO 형식)
         """
