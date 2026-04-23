@@ -75,11 +75,11 @@ from bookprintapi import Client
 
 client = Client()
 
-# 1. 책 생성
+# 1. 책 생성 — creation_type: "TEMPLATE" | "PDF_UPLOAD" | "MIX_COVER_TEMPLATE"
 book = client.books.create(
     book_spec_uid="SQUAREBOOK_HC",
     title="우리 가족 앨범",
-    creation_type="TEST"
+    creation_type="TEMPLATE"
 )
 book_uid = book["data"]["bookUid"]
 print(f"책 생성: {book_uid}")
@@ -156,7 +156,7 @@ client.credits     # 충전금 잔액/거래내역/Sandbox충전
 client.books.list(status="finalized", limit=20, offset=0)
 
 # 생성
-client.books.create(book_spec_uid="SQUAREBOOK_HC", title="제목", creation_type="TEST")
+client.books.create(book_spec_uid="SQUAREBOOK_HC", title="제목", creation_type="TEMPLATE")
 
 # 상세 조회
 client.books.get("bk_xxxx")
