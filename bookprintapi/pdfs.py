@@ -7,6 +7,9 @@
 - POST /books/{bookUid}/pdf-contents   내지 PDF 신규 등록
 - PUT  /books/{bookUid}/pdf-contents   내지 PDF 교체
 - GET  /books/{bookUid}/pdf-contents   내지 PDF 바이너리 다운로드
+
+C04 이후 업로드 응답 data 에서 기존 `pageCount` 필드가 제거되고
+`pageMeta` 로 이동: {currentPageCount, pageMin, pageMax, pageIncrement, isValid}.
 """
 
 from __future__ import annotations
