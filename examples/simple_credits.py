@@ -2,6 +2,8 @@
 """
 BookPrintAPI SDK — Simple Credits Example
 
+⚠️  백엔드/CLI 실행 전제. SDK를 브라우저/프론트엔드에 번들하지 마세요.
+
 충전금 잔액 조회, 거래 내역, Sandbox 충전을 CLI로 실행합니다.
 
 사용법:

@@ -8,15 +8,28 @@
 
 ## 설치
 
+PyPI가 아니라 **GitHub 태그**에서 바로 설치합니다. 별도 계정/사내 레지스트리 불필요.
+
 ```bash
-pip install -e .
+# 최신 안정 태그 기준
+pip install "git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.2-beta"
 ```
 
-또는 설치 없이 바로 사용:
+또는 `requirements.txt`에 선언:
 
-```python
-import sys; sys.path.insert(0, "/path/to/bookprintapi-python-sdk")
-from bookprintapi import Client
+```
+bookprintapi @ git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.2-beta
+```
+
+> 태그 목록: [Releases](https://github.com/sweet-book/bookprintapi-python-sdk/tags)
+> 버전 올리기: 위 URL의 `@v0.1.2-beta` 부분만 바꾸고 `pip install` 재실행
+
+### 로컬에서 SDK를 수정하며 개발할 때
+
+레포를 clone 한 뒤:
+
+```bash
+pip install -e /path/to/bookprintapi-python-sdk
 ```
 
 **의존성**: `requests`, `python-dotenv` (Python 3.10+)

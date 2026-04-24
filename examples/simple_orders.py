@@ -2,6 +2,8 @@
 """
 BookPrintAPI SDK — Simple Orders Example
 
+⚠️  백엔드/CLI 실행 전제. SDK를 브라우저/프론트엔드에 번들하지 마세요.
+
 주문 견적, 생성, 조회, 취소를 CLI로 실행합니다.
 
 사용법:

@@ -2,6 +2,8 @@
 """
 BookPrintAPI SDK — Webhook Receiver Example
 
+⚠️  이 서버도 백엔드 프로세스입니다. 공인 HTTPS 엔드포인트 뒤에서 운영하세요.
+
 웹훅 이벤트를 수신하고 서명을 검증하는 Flask 서버 예제입니다.
 
 설치:

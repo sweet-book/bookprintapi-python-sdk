@@ -2,23 +2,30 @@
 """
 BookPrintAPI SDK — Server Pipeline Example
 
+⚠️  이 예제는 **백엔드 프로세스에서 실행되는 것을 전제**합니다.
+    SDK를 브라우저/프론트엔드 앱에 번들하지 마세요 — API Key가 노출됩니다.
+    권장 구조:  브라우저 → 파트너 백엔드(이 파일) → BookPrint API
+
 파트너 서버에서 백그라운드로 책을 생성하고 주문하는 파이프라인 예제입니다.
 실제 서비스에서는 이 로직을 큐(Celery, RQ 등)나 스케줄러에서 실행합니다.
 
 사용법:
     python server_pipeline.py
 
-흐름:
-    1. 충전금 확인
-    2. 책 생성 (draft)
-    3. 표지 생성
-    4. 내지 페이지 삽입 (반복)
-    5. 최소 페이지 확인 + 빈내지 패딩
-    6. 발행면 삽입
-    7. 책 확정 (finalize)
-    8. 가격 견적
-    9. 주문 생성
-   10. 주문 상태 확인
+흐름 (시퀀스):
+    파트너 백엔드                       BookPrint API
+    ─────────                            ─────────────
+ [1] 충전금 확인        GET  /credits/balance
+ [2] 책 생성 (draft)    POST /books
+ [3] 표지 사진 업로드    POST /books/{uid}/photos
+     표지 생성          POST /books/{uid}/cover
+ [4] 간지 + 내지 loop   POST /books/{uid}/contents  (반복)
+ [5] 최소 페이지 패딩    POST /books/{uid}/contents  (빈내지)
+ [6] 발행면 삽입         POST /books/{uid}/contents
+ [7] 책 확정             POST /books/{uid}/finalize  (부족 시 재시도)
+ [8] 가격 견적           POST /orders/estimate
+ [9] 주문 생성           POST /orders
+[10] 주문 상태 확인      GET  /orders/{uid}
 
 환경변수:
     BOOKPRINT_API_KEY   API Key (필수)
