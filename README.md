@@ -12,17 +12,17 @@ PyPI가 아니라 **GitHub 태그**에서 바로 설치합니다. 별도 계정/
 
 ```bash
 # 최신 안정 태그 기준
-pip install "git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.2-beta"
+pip install "git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.1"
 ```
 
 또는 `requirements.txt`에 선언:
 
 ```
-bookprintapi @ git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.2-beta
+bookprintapi @ git+https://github.com/sweet-book/bookprintapi-python-sdk.git@v0.1.1
 ```
 
 > 태그 목록: [Releases](https://github.com/sweet-book/bookprintapi-python-sdk/tags)
-> 버전 올리기: 위 URL의 `@v0.1.2-beta` 부분만 바꾸고 `pip install` 재실행
+> 버전 올리기: 위 URL의 `@v0.1.1` 부분만 바꾸고 `pip install` 재실행
 
 ### 로컬에서 SDK를 수정하며 개발할 때
 
