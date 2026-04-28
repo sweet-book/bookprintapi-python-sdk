@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bookprintapi"
-version = "0.1.0"
+version = "0.2.0"
 description = "BookPrintAPI Python SDK — 포토북 생성/주문 API"
 readme = "README.md"
 license = {text = "MIT"}

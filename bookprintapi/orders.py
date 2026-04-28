@@ -36,12 +36,13 @@ class OrdersClient:
         return self._client.post("/orders", payload=payload)
 
     def list(self, *, limit: int = 20, offset: int = 0,
-             status: int | None = None,
+             status: int | str | None = None,
              from_date: str | None = None, to_date: str | None = None) -> dict:
-        """주문 목록 조회
+        """주문 목록 조회 (응답 data: 배열, pagination 최상위 — 평탄화)
 
         Args:
-            status: 상태 코드 (20=PAID, 25=PDF_READY, 30=CONFIRMED, ...)
+            status: 상태 — 문자열 enum 권장 ("PAID", "PDF_READY", ...) 또는
+                숫자 코드 (20=PAID, 25=PDF_READY, ...). bookprintapi.OrderStatus 참조.
             from_date: 시작 일시 (ISO 형식)
             to_date: 종료 일시 (ISO 형식)
         """

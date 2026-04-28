@@ -73,3 +73,23 @@ class TemplatesClient:
         """
         params = {"AccountUid": account_uid} if account_uid else None
         return self._client.get(f"/templates/{template_uid}", params=params)
+
+    def get_schema(self, template_uid: str) -> dict:
+        """템플릿 파라미터 스키마 조회 (JSON Schema draft-07)
+
+        AI 에이전트 / 페이로드 검증 / codegen 용도. 응답 `data`는 JSON Schema
+        문서로, `properties` 각 항목의 `x-binding` 으로 binding 종류 식별.
+
+        binding ↔ JSON Schema 매핑:
+            text           → string
+            file           → string + format=uri
+            gallery        → array<string + format=uri>
+            collageGallery → array<string + format=uri>
+            rowGallery     → array<string + format=uri>
+
+        `required` 명시되지 않은 키는 응답 시점에 자동으로 필수(true) 처리됨.
+
+        Args:
+            template_uid: 템플릿 UID
+        """
+        return self._client.get(f"/templates/{template_uid}/schema")

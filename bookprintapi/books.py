@@ -44,7 +44,11 @@ class BooksClient:
         return self._client.post("/books", payload=payload)
 
     def get(self, book_uid: str) -> dict:
-        """책 상세 조회"""
+        """책 상세 조회 (RESTful 단건)
+
+        응답 `data`에 `pageMeta` 포함 — currentPageCount / pageMin / pageMax /
+        pageIncrement / isValid. 권한: 본인 책 + 환경 일치 필요.
+        """
         return self._client.get(f"/books/{book_uid}")
 
     def finalize(self, book_uid: str) -> dict:

@@ -312,8 +312,11 @@ PAID → PDF_READY → CONFIRMED → IN_PRODUCTION → PRODUCTION_COMPLETE → S
 
 ## 에러 처리
 
+서버 응답은 6필드 고정 shape: `success` / `errorCode` / `message` / `data` / `errors` / `fieldErrors`.
+**`error_code`로 기계 분기**, **`error.user_message()`로 사용자 표시**가 표준 패턴.
+
 ```python
-from bookprintapi import Client, ApiError
+from bookprintapi import Client, ApiError, ErrorCodes, ConstraintTypes
 
 client = Client()
 
@@ -323,13 +326,59 @@ try:
         shipping={...}
     )
 except ApiError as e:
-    print(f"오류: {e}")                 # [400] Bad Request
-    print(f"상태코드: {e.status_code}")  # 400
-    print(f"상세: {e.details}")          # ["Book을 찾을 수 없습니다: bk_invalid"]
+    print(f"오류: {e}")                  # [400] Bad Request (ERR_NOT_FOUND)
+    print(f"상태코드: {e.status_code}")   # 400
+    print(f"errorCode: {e.error_code}")  # "ERR_NOT_FOUND"
+    print(f"한글: {e.user_message()}")    # errors[0] 또는 message 폴백
 
-    # 충전금 부족 시
-    if e.status_code == 402:
-        print("충전금이 부족합니다. 충전 후 다시 시도하세요.")
+    # errorCode 기반 기계 분기 — 메시지 문자열 파싱 금지
+    if e.error_code == ErrorCodes.INSUFFICIENT_CREDIT:
+        # data 필드에 진단 객체: {required, balance, currency}
+        print(f"필요: {e.data['required']}, 잔액: {e.data['balance']}")
+    elif e.error_code == ErrorCodes.INSUFFICIENT_PAGES:
+        fe = e.field_error("pageCount")
+        print(f"최소 {fe.required_value}p 필요, 현재 {fe.current_value}p")
+    elif e.error_code == ErrorCodes.PAGECOUNT_INVALID:
+        fe = e.field_error("pageCount")
+        if fe.constraint == ConstraintTypes.MAX:
+            print(f"최대 {fe.required_value}p 초과")
+        elif fe.constraint == ConstraintTypes.INCREMENT:
+            print(f"증분 규칙 위반: {fe.required_value}")
+    elif e.error_code == ErrorCodes.FINALIZE_PREREQ_UNMET:
+        for fe in e.field_errors:
+            print(f"미충족: {fe.field} ({fe.constraint})")
+    elif e.error_code == ErrorCodes.ENV_MISMATCH:
+        print("호출 도메인과 책 환경(sandbox/live) 불일치")
+    elif e.error_code == ErrorCodes.SANDBOX_UNSUPPORTED:
+        print("이 엔드포인트는 Live 전용입니다")
+```
+
+### errorCode 카탈로그
+
+24종 식별자 (Generic 8 + Specific 16). `bookprintapi.ErrorCodes.*` 상수로 사용.
+
+| 카테고리 | 상수 | HTTP |
+|---|---|---|
+| Generic | `VALIDATION_FAILED` / `MALFORMED_REQUEST` / `UNAUTHORIZED` / `FORBIDDEN` / `NOT_FOUND` / `CONFLICT` / `TOO_MANY_REQUESTS` / `INTERNAL_ERROR` | 400~500 |
+| 페이지/책 | `INSUFFICIENT_PAGES` / `PAGECOUNT_INVALID` / `FINALIZE_PREREQ_UNMET` / `CREATION_TYPE_UNSUPPORTED` | 400 |
+| 템플릿 | `TEMPLATE_BINDING_MISSING` / `TEMPLATE_PARAM_REQUIRED` | 400 |
+| 주문 | `ORDER_TRANSITION_INVALID` (400) / `INSUFFICIENT_CREDIT` (402) | 400/402 |
+| 환경 | `ENV_MISMATCH` (403) / `SANDBOX_UNSUPPORTED` (501) | 403/501 |
+| 멱등성 | `IDEMPOTENCY_KEY_MISMATCH` | 422 |
+| PDF | `PDF_NOT_UPLOADED` (404) / `PDF_NOT_GENERATED` (409) / `PDF_PENDING` (409) / `PDF_GENERATION_FAILED` (422) / `PDF_FILE_MISSING` (500) | 404~500 |
+
+### 주문 상태 enum
+
+`bookprintapi.OrderStatus.*` 문자열 상수 12종. 응답의 `orderStatus`와 직접 비교.
+
+```python
+from bookprintapi import OrderStatus
+
+order = client.orders.get("ord_xxx")["data"]
+if order["orderStatus"] == OrderStatus.PAID:
+    ...
+elif order["orderStatus"] in (OrderStatus.SHIPPED, OrderStatus.DELIVERED):
+    ...
 ```
 
 ---
