@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 (2026-04-29)
+
+마이그레이션 회귀테스트 후 examples 핫픽스. SDK 본체는 변동 없음 — Python SDK는 클라이언트 메서드가 raw dict를 그대로 반환하는 설계여서 v1 평탄화 응답을 SDK 본체에서 처리할 곳이 없음.
+
+### Fixed
+- `examples/simple_books.py` — 책 목록 조회 시 v1 평탄화 응답(`data: [...]` + 최상위 `pagination`)에서 항상 빈 리스트로 빠지던 회귀. dict/list 타입 분기로 신/구 응답 모두 호환
+- `examples/simple_orders.py` — `--status PAID` 같은 문자열 enum 입력 시 `int()` 캐스팅으로 ValueError 발생하던 회귀. 숫자/문자열 자동 분기
+- `examples/simple_orders.py` — 주문 목록 평탄화 응답 회귀 동일 수정. `STATUS_NAMES` 숫자키 매핑 → `OrderStatus`/`ORDER_STATUS_FROM_CODE` 활용한 `status_label()` 헬퍼로 교체
+
 ## 0.2.0 (2026-04-28)
 
 서버 master 대비 develop 브랜치 변경사항(99번 v1 적용분) 반영.

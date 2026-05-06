@@ -7,7 +7,7 @@ from .errorcodes import ErrorCodes, ConstraintTypes
 from .order_status import OrderStatus, ORDER_STATUS_CODE, ORDER_STATUS_FROM_CODE
 from .webhook import verify_signature
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = [
     "Client",
     "ApiError",

@@ -10,7 +10,7 @@ BookPrintAPI SDK — Simple Orders Example
     python simple_orders.py estimate <bookUid> [quantity]           # 견적
     python simple_orders.py create <bookUid> [quantity]             # 주문 생성
     python simple_orders.py list                                    # 주문 목록
-    python simple_orders.py list --status 20                        # 상태별 필터
+    python simple_orders.py list --status PAID                      # 상태별 필터 (v1: 문자열 enum)
     python simple_orders.py get <orderUid>                          # 주문 상세
     python simple_orders.py cancel <orderUid> <사유>                # 주문 취소
     python simple_orders.py shipping <orderUid> --name 홍길동       # 배송지 변경
@@ -32,13 +32,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from dotenv import load_dotenv
 load_dotenv()
 
-from bookprintapi import Client, ApiError
+from bookprintapi import Client, ApiError, OrderStatus, ORDER_STATUS_FROM_CODE
 
-STATUS_NAMES = {
-    20: "PAID", 25: "PDF_READY", 30: "CONFIRMED", 40: "IN_PRODUCTION",
-    45: "COMPLETED", 50: "PRODUCTION_COMPLETE", 60: "SHIPPED",
-    70: "DELIVERED", 80: "CANCELLED", 81: "CANCELLED_REFUND",
-}
+
+def status_label(st):
+    """status 값을 사람이 읽기 좋은 라벨로 변환.
+    v1 응답: orderStatus는 문자열 enum ("PAID" 등). 구버전: 숫자 코드.
+    """
+    if isinstance(st, str) and st:
+        return st
+    if isinstance(st, int):
+        return ORDER_STATUS_FROM_CODE.get(st, str(st))
+    return str(st)
 
 
 def print_json(data):
@@ -151,12 +156,23 @@ def cmd_list(args):
     status = None
     if "--status" in args:
         idx = args.index("--status")
-        status = int(args[idx + 1]) if idx + 1 < len(args) else None
+        if idx + 1 < len(args):
+            raw = args[idx + 1]
+            # v1: 문자열 enum (PAID/CONFIRMED/...). 구버전: 숫자 코드.
+            status = int(raw) if raw.isdigit() else raw
 
     result = client.orders.list(limit=30, status=status)
     data = result.get("data", result)
-    orders = data.get("orders", []) if isinstance(data, dict) else []
-    pagination = data.get("pagination", {}) if isinstance(data, dict) else {}
+    # v1 평탄화: data: [...] + 최상위 pagination. 구버전: data.orders / data.pagination.
+    if isinstance(data, list):
+        orders = data
+        pagination = result.get("pagination", {}) or {}
+    elif isinstance(data, dict):
+        orders = data.get("orders", []) or []
+        pagination = result.get("pagination") or data.get("pagination", {}) or {}
+    else:
+        orders = []
+        pagination = {}
 
     if not orders:
         print("주문이 없습니다.")
@@ -166,8 +182,8 @@ def cmd_list(args):
     print("-" * 90)
     for o in orders:
         uid = o.get("orderUid", "")
-        st = o.get("orderStatus", 0)
-        st_name = o.get("orderStatusDisplay", "") or STATUS_NAMES.get(st, str(st))
+        st = o.get("orderStatus", "")
+        st_name = o.get("orderStatusDisplay", "") or status_label(st)
         items = o.get("itemCount", 0)
         paid = o.get("paidCreditAmount", 0)
         name = o.get("recipientName", "")
@@ -187,8 +203,8 @@ def cmd_get(args):
     result = client.orders.get(args[0])
     data = result.get("data", result)
 
-    st = data.get("orderStatus", 0)
-    st_name = data.get("orderStatusDisplay", "") or STATUS_NAMES.get(st, str(st))
+    st = data.get("orderStatus", "")
+    st_name = data.get("orderStatusDisplay", "") or status_label(st)
 
     print(f"\n{'='*50}")
     print(f"  주문 상세: {data.get('orderUid', '')}")
@@ -214,8 +230,8 @@ def cmd_get(args):
     if items:
         print(f"\n  [항목] ({len(items)}건)")
         for it in items:
-            it_st = it.get("itemStatus", 0)
-            it_name = it.get("itemStatusDisplay", "") or STATUS_NAMES.get(it_st, str(it_st))
+            it_st = it.get("itemStatus", "")
+            it_name = it.get("itemStatusDisplay", "") or status_label(it_st)
             title = it.get("bookTitle", "") or it.get("bookUid", "")
             print(f"    {title} | {it.get('pageCount', 0)}p x {it.get('quantity', 1)} | "
                   f"{fmt_amount(it.get('itemAmount', 0))} | {it_name}")

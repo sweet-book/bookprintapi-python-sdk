@@ -48,8 +48,17 @@ def cmd_list(args):
 
     result = client.books.list(status=status, limit=50)
     data = result.get("data", result)
-    books = data.get("books", []) if isinstance(data, dict) else []
-    pagination = data.get("pagination", {}) if isinstance(data, dict) else {}
+    # v1 평탄화 응답: data: [...] + 최상위 pagination
+    # 구버전 호환: data: { books: [...], pagination: {...} }
+    if isinstance(data, list):
+        books = data
+        pagination = result.get("pagination", {}) or {}
+    elif isinstance(data, dict):
+        books = data.get("books", []) or []
+        pagination = result.get("pagination") or data.get("pagination", {}) or {}
+    else:
+        books = []
+        pagination = {}
 
     if not books:
         print("책이 없습니다.")
