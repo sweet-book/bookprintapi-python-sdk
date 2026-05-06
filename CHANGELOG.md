@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.2.2 (2026-05-06)
+
+### Fixed
+- `covers.create` / `contents.insert` 의 multipart 파일 part 이름 회귀 정정.
+  서버는 **템플릿이 정의한 binding 이름**(예: `coverPhoto`, `mainPhoto`)을 multipart part name 으로
+  요구합니다. 0.2.1 까지의 SDK는 모든 파일을 `files` (Covers) / `rowPhotos` (Contents) 단일
+  필드명으로 보내 서버가 `필수 이미지 파라미터 'X' 가 제공되지 않았습니다` 로 거부했습니다.
+
+### Added
+- `covers.create(..., binding_files={"coverPhoto": "photo.jpg"})` — binding 이름 → 파일 경로 매핑 (권장)
+- `contents.insert(..., binding_files={"mainPhoto": p1, "subPhoto": p2})` — 동일 패턴
+- 파일 확장자 → MIME 자동 추정 (`mimetypes.guess_type`), 기존 image/jpeg 하드코딩 제거
+
+### Deprecated
+- `covers.create(..., files=[...])` 와 `contents.insert(..., files=[...])` — 호환을 위해 보존하지만
+  `DeprecationWarning` 출력. 다음 메이저 버전에서 제거 예정.
+
+### Migration
+
+```python
+# Before (v0.2.1, 깨짐)
+client.covers.create(book_uid, template_uid="...", files=["photo.jpg"])
+
+# After (v0.2.2)
+client.covers.create(
+    book_uid,
+    template_uid="...",
+    binding_files={"coverPhoto": "photo.jpg"},  # binding 이름은 template 정의에 맞춰
+)
+```
+
+### Notes
+- Java SDK (bookprintapi-java-sdk) 와 Node SDK 0.2.2 도 같은 회귀 정정. 모두 v0.2.2 동일 동작.
+- 발견 경위: Java SDK 통합 테스트가 sandbox 99 에서 3시나리오로 검증 → 서버는 binding 이름이 정답.
+  Python SDK 도 sandbox 99 실호출로 같은 응답 확인 후 정정.
+
 ## 0.2.1 (2026-04-29)
 
 마이그레이션 회귀테스트 후 examples 핫픽스. SDK 본체는 변동 없음 — Python SDK는 클라이언트 메서드가 raw dict를 그대로 반환하는 설계여서 v1 평탄화 응답을 SDK 본체에서 처리할 곳이 없음.
