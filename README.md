@@ -102,6 +102,8 @@ client.photos.upload(book_uid, "photo1.jpg")
 client.photos.upload(book_uid, "photo2.jpg")
 
 # 3. 표지 생성
+#    parameters의 키(frontPhoto/photo)는 템플릿이 정의한 binding 이름과 정확히 일치해야 함.
+#    위에서 업로드한 사진의 fileName을 그대로 참조.
 client.covers.create(book_uid,
     template_uid="COVER_TEMPLATE_UID",
     parameters={"title": "우리 가족 앨범", "frontPhoto": "photo1.jpg"}
@@ -200,11 +202,20 @@ client.photos.delete("bk_xxxx", "photo250105143052123.JPG")
 ### Covers
 
 ```python
-# 표지 생성 (파라미터에 사진 URL 또는 업로드 파일명 지정)
+# (A) 사진을 미리 업로드하고 parameters에 fileName 참조 (권장 — 사진 재사용 시 효율적)
+upload = client.photos.upload("bk_xxxx", "cover.jpg")
+file_name = upload["data"]["fileName"]
 client.covers.create("bk_xxxx",
     template_uid="tpl_cover001",
-    parameters={"title": "My Book", "frontPhoto": "$upload"},
-    files=["cover.jpg"]
+    parameters={"title": "My Book", "coverPhoto": file_name},  # binding 이름은 템플릿 정의에 맞춰
+)
+
+# (B) multipart 로 파일 직접 첨부 — binding 이름을 키로 사용 (v0.2.2+)
+#     binding 이름은 템플릿이 정의한 키와 정확히 일치해야 함 (예: "coverPhoto")
+client.covers.create("bk_xxxx",
+    template_uid="tpl_cover001",
+    parameters={"title": "My Book"},
+    binding_files={"coverPhoto": "cover.jpg"},
 )
 
 # 조회 / 삭제
@@ -212,14 +223,25 @@ client.covers.get("bk_xxxx")
 client.covers.delete("bk_xxxx")
 ```
 
+> ⚠️ 0.2.1 이전의 `files=["cover.jpg"]` 형태는 모든 파일을 `files` 단일 필드명으로 보내
+> 서버가 거부합니다. 0.2.2 부터 `binding_files` 사용 필수 (옛 인자는 호환 보존하지만 동작 X).
+
 ### Contents
 
 ```python
-# 내지 페이지 삽입
+# 내지 페이지 삽입 (텍스트만)
 client.contents.insert("bk_xxxx",
     template_uid="tpl_content001",
     parameters={"date": "2026-01-01", "diary_text": "오늘의 일기"},
     break_before="page"   # "page": 새 페이지부터 시작
+)
+
+# 사진 첨부 — binding 이름을 키로 사용 (v0.2.2+)
+client.contents.insert("bk_xxxx",
+    template_uid="tpl_content_photo",
+    parameters={"date": "2026-01-01"},
+    binding_files={"mainPhoto": "page1.jpg", "subPhoto": "page1-sub.jpg"},
+    break_before="page",
 )
 
 # 전체 내지 삭제 (표지 유지)
