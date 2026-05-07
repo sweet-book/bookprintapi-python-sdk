@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.3.0 (2026-05-07)
+
+### Added — SDK 헬퍼 (다단계 플로우 한 호출)
+
+설계 문서 `11_sdk_helpers_design.md` v0.1 구현. R011-S01 (16p 책에 35+ API 호출) / C08 (다단계 실패 컨텍스트) 대응.
+
+- **`client.helpers.create_book_from_template(...)`**: TEMPLATE 모드 책 한 권을 `books.create → covers.create → contents.insert(N) → books.finalize` 한 호출로 처리. 반환 `BookBuildResult` (book_uid, content_pages, finalized, page_count)
+- **`client.helpers.upload_pdf_and_order(...)`**: PDF_UPLOAD 모드 책 + PDF 2종 + finalize + 견적 + 주문까지 한 호출. 반환 `PdfOrderBuildResult` (book_uid, order_uid, finalized, estimate, order). `fail_on_insufficient_credit` 옵션으로 estimate `creditSufficient=false` 시 주문 전 차단
+
+#### 새 예외: `SweetbookHelperError`
+- `stage`: `HelperStage` 상수 — `BOOK_CREATE` / `COVER_CREATE` / `CONTENT_INSERT` / `BOOK_FINALIZE` / `PDF_UPLOAD_COVER` / `PDF_UPLOAD_CONTENTS` / `ORDER_ESTIMATE` / `ORDER_CREATE` / `VALIDATION`
+- `code`: `HelperErrorCodes.SDK_HLPR_*` 임시 코드 (C03 확정 시 표준 errorCode 로 매핑 예정)
+- `book_uid`: `BOOK_CREATE` 성공 후부터 채워짐. 파트너가 `client.books.delete(e.book_uid)` 로 명시적 cleanup 가능
+- `partial`: 단계별 부분 성공 정보 (`bookCreated` / `coverCreated` / `contentsInserted[]` / `finalized` 등)
+- `cause`: 원 `ApiError` 예외 보존
+- `content_index`: `CONTENT_INSERT` 실패 시 어느 페이지인지 (0-based)
+- `user_message()`: cause 가 `ApiError` 면 그쪽으로 위임, 아니면 자체 메시지
+
+#### 정책 (설계 §4)
+- 자동 재시도 / 자동 롤백 안 함 — 파트너가 `partial` / `book_uid` 보고 판단
+- 호출 전 클라이언트측 검증: `book_spec_uid` 비어있지 않음, `contents` ≥ 1, `shipping.recipientName` 등
+
+### Tests
+- `tests/test_helpers.py` 16건 추가 (happy path / validation / 단계별 실패 / partial 컨텍스트 / user_message 위임). `pytest` 16/16 통과
+
+### Notes
+- Pythonic 한 개별 kwargs 시그니처 채택 (설계 §7-5). Node/Java 는 자체 언어 컨벤션에 맞춰 별도 시그니처
+- helpers 가 신설되었지만 기존 sub-client (`client.books.create` 등) 동작은 그대로 보존. 하위 호환
+
 ## 0.2.2 (2026-05-06)
 
 ### Fixed

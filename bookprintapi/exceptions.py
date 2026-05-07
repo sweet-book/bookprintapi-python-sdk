@@ -139,3 +139,95 @@ class ValidationError(Exception):
     def __init__(self, message: str, field: str | None = None):
         super().__init__(message)
         self.field = field
+
+
+class HelperStage:
+    """SweetbookHelperError.stage 값 — 11_sdk_helpers_design.md § 3.2
+
+    헬퍼가 다단계 호출 중 어느 단계에서 실패했는지 식별. 문자열 상수.
+    """
+
+    # 입력 검증 (호출 전)
+    VALIDATION = "VALIDATION"
+
+    # createBookFromTemplate 단계
+    BOOK_CREATE = "BOOK_CREATE"
+    COVER_CREATE = "COVER_CREATE"
+    CONTENT_INSERT = "CONTENT_INSERT"  # contentIndex 와 함께 사용
+    BOOK_FINALIZE = "BOOK_FINALIZE"
+
+    # uploadPdfAndOrder 단계
+    PDF_UPLOAD_COVER = "PDF_UPLOAD_COVER"
+    PDF_UPLOAD_CONTENTS = "PDF_UPLOAD_CONTENTS"
+    ORDER_ESTIMATE = "ORDER_ESTIMATE"
+    ORDER_CREATE = "ORDER_CREATE"
+
+
+class HelperErrorCodes:
+    """헬퍼 임시 errorCode (11_sdk_helpers_design.md § 3.4)
+
+    C03 에러코드 체계 확정 시 본 코드들을 표준 errorCode 로 매핑할 예정.
+    """
+
+    BOOK_CREATE_FAILED = "SDK_HLPR_BOOK_CREATE_FAILED"
+    COVER_CREATE_FAILED = "SDK_HLPR_COVER_CREATE_FAILED"
+    CONTENT_INSERT_FAILED = "SDK_HLPR_CONTENT_INSERT_FAILED"
+    PDF_UPLOAD_FAILED = "SDK_HLPR_PDF_UPLOAD_FAILED"
+    FINALIZE_FAILED = "SDK_HLPR_FINALIZE_FAILED"
+    CREDIT_INSUFFICIENT = "SDK_HLPR_CREDIT_INSUFFICIENT"
+    ORDER_ESTIMATE_FAILED = "SDK_HLPR_ORDER_ESTIMATE_FAILED"
+    ORDER_CREATE_FAILED = "SDK_HLPR_ORDER_CREATE_FAILED"
+    VALIDATION = "SDK_HLPR_VALIDATION"
+
+
+class SweetbookHelperError(Exception):
+    """헬퍼 다단계 호출 중 발생한 실패 — 11_sdk_helpers_design.md § 3
+
+    Attributes:
+        stage: HelperStage 상수 — 어느 단계에서 실패했는지
+        code: HelperErrorCodes 상수 — SDK 헬퍼 임시 errorCode
+        book_uid: BOOK_CREATE 성공 후 단계부터 채워짐. 파트너가 cleanup 결정에 사용
+        order_uid: uploadPdfAndOrder 의 ORDER_CREATE 성공 후만 채워짐
+        partial: 단계별 부분 성공 정보 dict
+        cause: 원 예외 (대부분 ApiError, 가끔 ValueError 등)
+        content_index: stage=CONTENT_INSERT 일 때 어느 페이지인지 (0-based)
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        stage: str,
+        code: str,
+        book_uid: str | None = None,
+        order_uid: str | None = None,
+        partial: dict | None = None,
+        cause: Exception | None = None,
+        content_index: int | None = None,
+    ):
+        super().__init__(message)
+        self.message = message
+        self.stage = stage
+        self.code = code
+        self.book_uid = book_uid
+        self.order_uid = order_uid
+        self.partial: dict = partial or {}
+        self.cause = cause
+        self.content_index = content_index
+
+    def __str__(self) -> str:
+        parts = [f"[{self.stage}]"]
+        if self.content_index is not None:
+            parts[-1] = f"[{self.stage}#{self.content_index}]"
+        parts.append(self.message)
+        if self.code:
+            parts.append(f"({self.code})")
+        if self.book_uid:
+            parts.append(f"bookUid={self.book_uid}")
+        return " ".join(parts)
+
+    def user_message(self) -> str:
+        """사용자 표시용. cause 가 ApiError 면 그쪽 user_message 위임."""
+        if isinstance(self.cause, ApiError):
+            return self.cause.user_message()
+        return self.message

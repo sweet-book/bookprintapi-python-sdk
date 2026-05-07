@@ -68,6 +68,7 @@ class Client:
         from .pdfs import PdfsClient
         from .templates import TemplatesClient
         from .book_specs import BookSpecsClient
+        from .helpers import HelpersClient
 
         self.books = BooksClient(self)
         self.photos = PhotosClient(self)
@@ -78,6 +79,7 @@ class Client:
         self.pdfs = PdfsClient(self)
         self.templates = TemplatesClient(self)
         self.book_specs = BookSpecsClient(self)
+        self.helpers = HelpersClient(self)
 
     def _headers(self) -> dict[str, str]:
         return {
