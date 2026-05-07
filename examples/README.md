@@ -24,6 +24,7 @@ cp .env.example .env   # 없으면 직접 생성
 | 파일 | 역할 | 특징 |
 |---|---|---|
 | `server_pipeline.py` | **책 생성 → 주문 E2E 파이프라인** | 실서비스의 백그라운드 작업(Celery, RQ 등) 이식용 |
+| `helpers_example.py` | **헬퍼 (`client.helpers.*`) 시연** — v0.3.0+ | createBookFromTemplate / uploadPdfAndOrder + 단계별 실패 분기 패턴 |
 | `simple_books.py` | CLI — 책 목록/생성/확정/삭제 | 단일 도메인 학습용 |
 | `simple_credits.py` | CLI — 충전금 잔액/거래내역/Sandbox 충전 | 단일 도메인 학습용 |
 | `simple_orders.py` | CLI — 주문 견적/생성/조회/취소/배송지 변경 | 단일 도메인 학습용 |
