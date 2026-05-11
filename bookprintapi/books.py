@@ -20,11 +20,17 @@ class BooksClient:
             status: "draft" | "finalized" (미지정 시 전체)
             limit: 결과 수 (1-100)
             offset: 페이지네이션 오프셋
+
+        Returns:
+            ``{ success, data: list[Book], pagination: {total, limit, offset, hasNext}, message }``
+            (envelope 통일 전후 모두에서 동일한 shape 보장 — SDK 내부 평탄화)
         """
+        from .response import ResponseParser
         params = {"limit": limit, "offset": offset}
         if status:
             params["status"] = status
-        return self._client.get("/books", params=params)
+        raw = self._client.get("/books", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     def create(self, *, book_spec_uid: str, title: str | None = None,
                creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:

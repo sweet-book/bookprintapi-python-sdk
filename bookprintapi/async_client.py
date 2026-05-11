@@ -30,7 +30,7 @@ except ImportError:
 
 from .exceptions import ApiError
 
-_VERSION = "0.1.0"
+_VERSION = "0.4.0"
 
 _BASE_URLS = {
     "live": "https://api.sweetbook.com/v1",
@@ -50,10 +50,12 @@ class _AsyncBaseClient:
 
 class AsyncBooksClient(_AsyncBaseClient):
     async def list(self, *, status: str | None = None, limit: int = 20, offset: int = 0) -> dict:
+        from .response import ResponseParser
         params = {"limit": limit, "offset": offset}
         if status:
             params["status"] = status
-        return await self._client.get("/books", params=params)
+        raw = await self._client.get("/books", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     async def create(self, *, book_spec_uid: str, title: str | None = None,
                      creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
@@ -90,10 +92,12 @@ class AsyncOrdersClient(_AsyncBaseClient):
 
     async def list(self, *, limit: int = 20, offset: int = 0,
                    status: int | None = None) -> dict:
+        from .response import ResponseParser
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if status is not None:
             params["status"] = status
-        return await self._client.get("/orders", params=params)
+        raw = await self._client.get("/orders", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     async def get(self, order_uid: str) -> dict:
         self._requireParam(order_uid, "order_uid")
@@ -119,7 +123,9 @@ class AsyncCreditsClient(_AsyncBaseClient):
         return await self._client.get("/credits")
 
     async def get_transactions(self, *, limit: int = 20, offset: int = 0) -> dict:
-        return await self._client.get("/credits/transactions", params={"limit": limit, "offset": offset})
+        from .response import ResponseParser
+        raw = await self._client.get("/credits/transactions", params={"limit": limit, "offset": offset})
+        return ResponseParser(raw).to_flat_list_response()
 
     async def sandbox_charge(self, amount: int, memo: str | None = None) -> dict:
         payload: dict[str, Any] = {"amount": amount}

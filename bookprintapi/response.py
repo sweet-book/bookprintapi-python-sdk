@@ -85,3 +85,30 @@ class ResponseParser:
         d = self.get_dict()
         meta = d.get("pageMeta")
         return meta if isinstance(meta, dict) else {}
+
+    def to_flat_list_response(self) -> dict:
+        """list 응답을 신·구 envelope 둘 다에서 동일한 형태로 평탄화.
+
+        BookPrintAPI v1 (commit 6fbf346, 2026-05-11) 이후 list 응답이
+        ``{ data: [...], pagination: {...} }`` 평탄 envelope으로 통일됨.
+        본 헬퍼는 옛 ``{ data: { books|orders|items|...: [...], pagination } }``
+        형태도 동일하게 평탄화해서 반환 — 사용자 코드는 envelope 통일 전후
+        모두에서 같은 접근 패턴 (``response["data"]``, ``response["pagination"]``) 사용 가능.
+
+        Returns:
+            ``{ success, data: list, pagination: dict, message }`` 형태의 dict.
+            ``totalCount`` (구 photos 응답) 도 자동으로 ``pagination.total`` 로 흡수.
+        """
+        out: dict[str, Any] = {
+            "success": self.success,
+            "data": self.get_list(),
+            "message": self.get_message(),
+        }
+        pagination = self.get_pagination()
+        # 구 photos 응답의 totalCount 흡수
+        d = self.get_data()
+        if isinstance(d, dict) and "totalCount" in d and "total" not in pagination:
+            pagination = {**pagination, "total": d["totalCount"]}
+        if pagination:
+            out["pagination"] = pagination
+        return out

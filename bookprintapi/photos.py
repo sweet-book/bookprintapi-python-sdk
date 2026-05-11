@@ -42,8 +42,15 @@ class PhotosClient:
         return results
 
     def list(self, book_uid: str) -> dict:
-        """업로드된 사진 목록"""
-        return self._client.get(f"/books/{book_uid}/photos")
+        """업로드된 사진 목록
+
+        Returns:
+            ``{ success, data: list[Photo], pagination: {total, ...}, message }``
+            (envelope 통일 전후 모두 동일한 shape — 구 ``data.totalCount`` 도 ``pagination.total`` 로 흡수)
+        """
+        from .response import ResponseParser
+        raw = self._client.get(f"/books/{book_uid}/photos")
+        return ResponseParser(raw).to_flat_list_response()
 
     def delete(self, book_uid: str, file_name: str) -> dict | None:
         """사진 삭제 (draft 상태 책만 가능)"""

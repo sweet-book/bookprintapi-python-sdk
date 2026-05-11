@@ -12,7 +12,7 @@ from urllib3.util.retry import Retry
 
 from .exceptions import ApiError
 
-_VERSION = "0.1.0"
+_VERSION = "0.4.0"
 _DEFAULT_TIMEOUT = 60
 
 _BASE_URLS = {

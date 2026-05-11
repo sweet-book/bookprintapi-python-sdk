@@ -19,13 +19,20 @@ class CreditsClient:
 
     def get_transactions(self, *, limit: int = 20, offset: int = 0,
                          from_date: str | None = None, to_date: str | None = None) -> dict:
-        """충전금 거래 내역 조회"""
+        """충전금 거래 내역 조회
+
+        Returns:
+            ``{ success, data: list[Transaction], pagination?, message }``
+            (envelope 통일 전후 동일한 shape — credits/transactions 는 pagination 없는 list)
+        """
+        from .response import ResponseParser
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if from_date:
             params["from"] = from_date
         if to_date:
             params["to"] = to_date
-        return self._client.get("/credits/transactions", params=params)
+        raw = self._client.get("/credits/transactions", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     def sandbox_charge(self, amount: int, memo: str | None = None) -> dict:
         """Sandbox 테스트 충전 (env=test 전용, 계정 자동 생성)

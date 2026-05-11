@@ -62,7 +62,9 @@ class TemplatesClient:
             params["theme"] = theme
         if sort:
             params["sort"] = sort
-        return self._client.get("/templates", params=params)
+        from .response import ResponseParser
+        raw = self._client.get("/templates", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     def get(self, template_uid: str, *, account_uid: str | None = None) -> dict:
         """템플릿 상세 조회

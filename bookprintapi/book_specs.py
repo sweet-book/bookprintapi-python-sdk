@@ -18,14 +18,20 @@ class BookSpecsClient:
     def __init__(self, client: Client):
         self._client = client
 
-    def list(self, *, account_uid: str | None = None) -> dict | list:
+    def list(self, *, account_uid: str | None = None) -> dict:
         """BookSpec 목록 조회
 
         Args:
             account_uid: 관리자 전용 - 다른 사용자의 custom_pricing이 반영된 목록 조회
+
+        Returns:
+            ``{ success, data: list[BookSpec], pagination?, message }``
+            (envelope 통일 전후 동일한 shape)
         """
+        from .response import ResponseParser
         params = {"accountUid": account_uid} if account_uid else None
-        return self._client.get("/book-specs", params=params)
+        raw = self._client.get("/book-specs", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     def get(self, book_spec_uid: str, *, account_uid: str | None = None) -> dict:
         """BookSpec 상세 조회

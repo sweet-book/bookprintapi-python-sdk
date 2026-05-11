@@ -46,6 +46,7 @@ class OrdersClient:
             from_date: 시작 일시 (ISO 형식)
             to_date: 종료 일시 (ISO 형식)
         """
+        from .response import ResponseParser
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if status is not None:
             params["status"] = status
@@ -53,7 +54,8 @@ class OrdersClient:
             params["from"] = from_date
         if to_date:
             params["to"] = to_date
-        return self._client.get("/orders", params=params)
+        raw = self._client.get("/orders", params=params)
+        return ResponseParser(raw).to_flat_list_response()
 
     def get(self, order_uid: str) -> dict:
         """주문 상세 조회"""
