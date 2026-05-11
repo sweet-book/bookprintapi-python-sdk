@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.4.0 (2026-05-11)
+
+### Added — list 응답 envelope 통일 호환 레이어
+
+photobook-api commit `6fbf346` (2026-05-11) 의 list 응답 envelope 평탄화에 SDK 가 호환 레이어로 흡수. 사용자 코드 마이그레이션 불필요.
+
+- **`ResponseParser.to_flat_list_response()`** 신규 — 신·구 envelope 둘 다에서 동일한 `{ success, data: list, pagination, message }` shape 반환
+- 모든 list 메서드 (sync 5 + async 3 = 8건) 가 SDK 내부에서 평탄화 적용:
+  - `client.books.list()` / `client.orders.list()` / `client.templates.list()`
+  - `client.photos.list(book_uid)` / `client.book_specs.list()`
+  - `client.credits.get_transactions()`
+  - `AsyncClient.books.list()` / `AsyncClient.orders.list()` / `AsyncClient.credits.get_transactions()`
+- 구 photos 응답의 `data.totalCount` → `pagination.total` 로 자동 흡수
+
+### 변경된 envelope 명세
+
+**Before** (구):
+```json
+{ "success": true, "data": { "books": [...], "pagination": {...} } }
+```
+
+**After** (신, commit 6fbf346 이후):
+```json
+{
+  "success": true,
+  "data": [...],
+  "pagination": { "total": 120, "limit": 20, "offset": 0, "hasNext": true }
+}
+```
+
+SDK 사용자는 두 envelope 모두에서 `result["data"]` 가 항상 배열, `result["pagination"]` 이 항상 최상위 — 동일한 코드로 두 시점 모두 호환.
+
+### Tests
+- `tests/test_response_envelope.py` 7건 추가 (신·구 envelope, totalCount 흡수, 엣지 케이스)
+- `pytest` 23/23 통과
+
+### Migration
+v0.3.x → v0.4.0: 추가 호환 only. 기존 list 메서드 시그니처/리턴 dict 의 외부 shape 그대로 (`{ success, data, pagination, message }`).
+
+이슈: https://github.com/sweet-book/bookprintapi-python-sdk/issues/2
+
 ## 0.3.0 (2026-05-07)
 
 ### Added — SDK 헬퍼 (다단계 플로우 한 호출)
