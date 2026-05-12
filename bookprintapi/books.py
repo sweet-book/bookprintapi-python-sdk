@@ -33,7 +33,8 @@ class BooksClient:
         return ResponseParser(raw).to_flat_list_response()
 
     def create(self, *, book_spec_uid: str, title: str | None = None,
-               creation_type: str = "TEMPLATE", external_ref: str | None = None) -> dict:
+               creation_type: str = "TEMPLATE", external_ref: str | None = None,
+               page_count: int | None = None) -> dict:
         """새 책 생성 (draft 상태)
 
         Args:
@@ -41,12 +42,23 @@ class BooksClient:
             title: 책 제목
             creation_type: "TEMPLATE" | "PDF_UPLOAD" | "MIX_COVER_TEMPLATE"
             external_ref: 외부 참조 ID (최대 100자)
+            page_count: 내지 페이지수. ``creation_type`` 이
+                ``PDF_UPLOAD`` 또는 ``MIX_COVER_TEMPLATE`` 일 때 **필수**.
+                ``TEMPLATE`` 모드에서는 서버가 무시함.
         """
+        if creation_type in ("PDF_UPLOAD", "MIX_COVER_TEMPLATE") and (
+            page_count is None or page_count <= 0
+        ):
+            raise ValueError(
+                f"creation_type={creation_type} 는 page_count(내지 페이지수, >0)가 필수입니다."
+            )
         payload = {"bookSpecUid": book_spec_uid, "creationType": creation_type}
         if title:
             payload["title"] = title
         if external_ref:
             payload["externalRef"] = external_ref
+        if page_count is not None:
+            payload["pageCount"] = page_count
         return self._client.post("/books", payload=payload)
 
     def get(self, book_uid: str) -> dict:

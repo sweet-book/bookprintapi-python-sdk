@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.1 (2026-05-12)
+
+### Fixed — `books.create()` 에 `page_count` 파라미터 명시 추가
+
+`creation_type=PDF_UPLOAD` / `MIX_COVER_TEMPLATE` 시 서버가 `pageCount` 필수로 요구하지만, 기존 SDK 시그니처에 파라미터가 없어 raw `client.post('/books', ...)` 우회가 필요했던 갭을 메움.
+
+- **`BooksClient.create(*, page_count: int | None = None)`** 신규 파라미터
+- **`AsyncBooksClient.create()`** 도 동일 시그니처
+- `creation_type` 이 `PDF_UPLOAD` / `MIX_COVER_TEMPLATE` 인데 `page_count` 가 `None` / `<=0` 이면 즉시 `ValueError` (서버 왕복 절감)
+- `creation_type=TEMPLATE` 에서 `page_count` 전달해도 payload 에 포함만 함 (서버가 무시) — 호출자 코드 단순화
+
+### Backward compatibility
+
+기존 `creation_type=TEMPLATE` 호출자는 영향 없음 (`page_count` 는 키워드-온리 선택 파라미터).
+
 ## 0.4.0 (2026-05-11)
 
 ### Added — list 응답 envelope 통일 호환 레이어
